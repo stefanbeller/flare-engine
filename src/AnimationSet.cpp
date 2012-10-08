@@ -78,6 +78,7 @@ void AnimationSet::load() {
 	bool compressed_loading=false; // is reset every section to false, set by frame keyword
 	Animation *newanim = NULL;
 	vector<short> active_frames;
+	int differentkinds = 8;
 
 	// Parse the file and on each new section create an animation object from the data parsed previously
 	parser.next();
@@ -87,7 +88,7 @@ void AnimationSet::load() {
 		if (parser.new_section) {
 			if (!first_section && !compressed_loading) {
 				Animation *a = new Animation(_name, type, sprite);
-				a->setupUncompressed(render_size, render_offset, position, frames, duration);
+				a->setupUncompressed(render_size, render_offset, position, frames, duration, differentkinds);
 				if (!active_frames.empty())
 					a->setActiveFrames(active_frames);
 				active_frames.clear();
@@ -105,6 +106,9 @@ void AnimationSet::load() {
 			imagefile = parser.val;
 			imag->increaseCount(imagefile);
 			sprite = imag->getSurface(imagefile);
+		}
+		else if (parser.key == "differentkinds") {
+			differentkinds = toInt(parser.val);
 		}
 		else if (parser.key == "position") {
 			position = toInt(parser.val);
@@ -146,7 +150,7 @@ void AnimationSet::load() {
 		else if (parser.key == "frame") {
 			if (compressed_loading == false) { // first frame statement in section
 				newanim = new Animation(_name, type, sprite);
-				newanim->setup(frames, duration);
+				newanim->setup(frames, duration, differentkinds);
 				if (!active_frames.empty())
 					newanim->setActiveFrames(active_frames);
 				active_frames.clear();
@@ -181,7 +185,7 @@ void AnimationSet::load() {
 	if (!compressed_loading) {
 		// add final animation
 		Animation *a = new Animation(_name, type, sprite);
-		a->setupUncompressed(render_size, render_offset, position, frames, duration);
+		a->setupUncompressed(render_size, render_offset, position, frames, duration, differentkinds);
 		if (!active_frames.empty())
 			a->setActiveFrames(active_frames);
 		active_frames.clear();
